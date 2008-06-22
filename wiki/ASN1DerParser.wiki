@@ -18,4 +18,4 @@ The new parser is currently being built around the following concepts:
 
 That's it for now. 
 
-Check in the SVN trunk HEAD for com/hurlant/util/asn1/* and com/hurlant/util/der/Type2.as to see what's there.
+Check in the SVN trunk HEAD for `com/hurlant/util/asn1/*` and `com/hurlant/util/der/Type2.as` to see what's there.
