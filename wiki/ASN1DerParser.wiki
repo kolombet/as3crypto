@@ -4,6 +4,7 @@
 = Introduction =
 
 The current parser sucks. It treats ASN-1 structures as a big "any" type, and tries its best.
+
 Since it's not possible to correctly parse an X.509 certificate as an "any" type, there are a number of hacks in it handcrafted to parse some X.509 certificates.
 Those hacks end up breaking the parsing of other certificates.
 
