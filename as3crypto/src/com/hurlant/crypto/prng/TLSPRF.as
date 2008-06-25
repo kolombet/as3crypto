@@ -1,12 +1,3 @@
-/**
- * TLSPRF
- * 
- * An ActionScript 3 implementation of a pseudo-random generator
- * that follows the TLS specification
- * Copyright (c) 2007 Henri Torgemane
- * 
- * See LICENSE.txt for full license information.
- */
 package com.hurlant.crypto.prng
 {
 	import flash.utils.ByteArray;
@@ -15,7 +6,6 @@ package com.hurlant.crypto.prng
 	import com.hurlant.crypto.hash.SHA1;
 	import com.hurlant.util.Memory;
 	import com.hurlant.util.Hex;
-	import flash.utils.IDataOutput;
 
 	/**
 	 * There's "Random", and then there's TLS Random.
@@ -79,7 +69,7 @@ package com.hurlant.crypto.prng
 			d2.writeBytes(this.seed);
 		}
 		// XXX HORRIBLY SLOW. REWRITE.
-		public function nextBytes(buffer:IDataOutput, length:int):void {
+		public function nextBytes(buffer:ByteArray, length:int):void {
 			while (length--) {
 				buffer.writeByte(nextByte());
 			}

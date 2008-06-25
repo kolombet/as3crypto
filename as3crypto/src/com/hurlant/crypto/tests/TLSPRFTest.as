@@ -1,11 +1,3 @@
-/**
- * TLSPRFTest
- * 
- * A test class for TLFPRF
- * Copyright (c) 2007 Henri Torgemane
- * 
- * See LICENSE.txt for full license information.
- */
 package com.hurlant.crypto.tests
 {
 	import flash.utils.ByteArray;

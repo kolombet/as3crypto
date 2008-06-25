@@ -1,11 +1,3 @@
-/**
- * TripleDESKeyTest
- * 
- * A test class for TripleDESKey
- * Copyright (c) 2007 Henri Torgemane
- * 
- * See LICENSE.txt for full license information.
- */
 package com.hurlant.crypto.tests
 {
 	import com.hurlant.crypto.symmetric.TripleDESKey;

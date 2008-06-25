@@ -58,17 +58,17 @@ package com.hurlant.crypto.rsa
 		}
 
 		public static function parsePublicKey(N:String, E:String):RSAKey {
-			return new RSAKey(new BigInteger(N, 16, true), parseInt(E,16));
+			return new RSAKey(new BigInteger(N, 16), parseInt(E,16));
 		}
 		public static function parsePrivateKey(N:String, E:String, D:String, 
 			P:String=null,Q:String=null, DMP1:String=null, DMQ1:String=null, IQMP:String=null):RSAKey {
 			if (P==null) {
-				return new RSAKey(new BigInteger(N,16, true), parseInt(E,16), new BigInteger(D,16, true));
+				return new RSAKey(new BigInteger(N,16), parseInt(E,16), new BigInteger(D,16));
 			} else {
-				return new RSAKey(new BigInteger(N,16, true), parseInt(E,16), new BigInteger(D,16, true),
-					new BigInteger(P,16, true), new BigInteger(Q,16, true),
-					new BigInteger(DMP1,16, true), new BigInteger(DMQ1, 16, true),
-					new BigInteger(IQMP, 16, true));
+				return new RSAKey(new BigInteger(N,16), parseInt(E,16), new BigInteger(D,16),
+					new BigInteger(P,16), new BigInteger(Q,16),
+					new BigInteger(DMP1,16), new BigInteger(DMQ1),
+					new BigInteger(IQMP));				
 			}
 		}
 		
@@ -81,23 +81,7 @@ package com.hurlant.crypto.rsa
 			n = null;
 			Memory.gc();
 		}
-
 		public function encrypt(src:ByteArray, dst:ByteArray, length:uint, pad:Function=null):void {
-			_encrypt(doPublic, src, dst, length, pad, 0x02);
-		}
-		public function decrypt(src:ByteArray, dst:ByteArray, length:uint, pad:Function=null):void {
-			_decrypt(doPrivate2, src, dst, length, pad, 0x02);
-		}
-
-		public function sign(src:ByteArray, dst:ByteArray, length:uint, pad:Function = null):void {
-			_encrypt(doPrivate2, src, dst, length, pad, 0x01);
-		}
-		public function verify(src:ByteArray, dst:ByteArray, length:uint, pad:Function = null):void {
-			_decrypt(doPublic, src, dst, length, pad, 0x01);
-		}
-		
-
-		private function _encrypt(op:Function, src:ByteArray, dst:ByteArray, length:uint, pad:Function, padType:int):void {
 			// adjust pad if needed
 			if (pad==null) pad = pkcs1pad;
 			// convert src to BigInteger
@@ -107,12 +91,12 @@ package com.hurlant.crypto.rsa
 			var bl:uint = getBlockSize();
 			var end:int = src.position + length;
 			while (src.position<end) {
-				var block:BigInteger = new BigInteger(pad(src, end, bl, padType), bl, true);
-				var chunk:BigInteger = op(block);
+				var block:BigInteger = new BigInteger(pad(src, end, bl), bl);
+				var chunk:BigInteger = doPublic(block);
 				chunk.toArray(dst);
 			}
 		}
-		private function _decrypt(op:Function, src:ByteArray, dst:ByteArray, length:uint, pad:Function, padType:int):void {
+		public function decrypt(src:ByteArray, dst:ByteArray, length:uint, pad:Function=null):void {
 			// adjust pad if needed
 			if (pad==null) pad = pkcs1unpad;
 			
@@ -123,18 +107,17 @@ package com.hurlant.crypto.rsa
 			var bl:uint = getBlockSize();
 			var end:int = src.position + length;
 			while (src.position<end) {
-				var block:BigInteger = new BigInteger(src, bl, true);
-				var chunk:BigInteger = op(block);
-				var b:ByteArray = pad(chunk, bl, padType);
+				var block:BigInteger = new BigInteger(src, length);
+				var chunk:BigInteger = doPrivate2(block);
+				var b:ByteArray = pad(chunk, bl);
 				dst.writeBytes(b);
 			}
 		}
-		
 		/**
-		 * PKCS#1 pad. type 1 (0xff) or 2, random.
+		 * PKCS#1 pad. type 2, random.
 		 * puts as much data from src into it, leaves what doesn't fit alone.
 		 */
-		private function pkcs1pad(src:ByteArray, end:int, n:uint, type:uint = 0x02):ByteArray {
+		private function pkcs1pad(src:ByteArray, end:int, n:uint):ByteArray {
 			var out:ByteArray = new ByteArray;
 			var p:uint = src.position;
 			end = Math.min(end, src.length, p+n-11);
@@ -144,63 +127,43 @@ package com.hurlant.crypto.rsa
 				out[--n] = src[i--];
 			}
 			out[--n] = 0;
-			if (type==0x02) { // type 2
-				var rng:Random = new Random;
+			var rng:Random = new Random;
+			while (n>2) {
 				var x:int = 0;
-				while (n>2) {
-					do {
-						x = rng.nextByte();
-					} while (x==0);
-					out[--n] = x;
-				}
-			} else { // type 1
-				while (n>2) {
-					out[--n] = 0xFF;
-				}
+				while (x==0) x = rng.nextByte();
+				out[--n] = x;
 			}
-			out[--n] = type;
+			out[--n] = 2;
 			out[--n] = 0;
 			return out;
 		}
 		
-		/**
-		 * 
-		 * @param src
-		 * @param n
-		 * @param type Not used.
-		 * @return 
-		 * 
-		 */
-		private function pkcs1unpad(src:BigInteger, n:uint, type:uint = 0x02):ByteArray {
+		private function pkcs1unpad(src:BigInteger, n:uint):ByteArray {
 			var b:ByteArray = src.toByteArray();
 			var out:ByteArray = new ByteArray;
 			var i:int = 0;
 			while (i<b.length && b[i]==0) ++i;
-			if (b.length-i != n-1 || b[i]!=type) {
-				trace("PKCS#1 unpad: i="+i+", expected b[i]=="+type+", got b[i]="+b[i].toString(16));
+			if (b.length-i != n-1 || b[i]!=2) {
+				trace("PKCS#1 unpad: i="+i+", expected b[i]==2, got b[i]="+b[i]);
 				return null;
 			}
 			++i;
 			while (b[i]!=0) {
 				if (++i>=b.length) {
-					trace("PKCS#1 unpad: i="+i+", b[i-1]!=0 (="+b[i-1].toString(16)+")");
+					trace("PKCS#1 unpad: i="+i+", b[i-1]!=0 (="+b[i-1]+")");
 					return null;
 				}
 			}
 			while (++i < b.length) {
 				out.writeByte(b[i]);
 			}
-			out.position = 0;
 			return out;
 		}
 		/**
 		 * Raw pad.
 		 */
-		public function rawpad(src:ByteArray, end:int, n:uint, type:uint = 0):ByteArray {
+		private function rawpad(src:ByteArray, end:int, n:uint):ByteArray {
 			return src;
-		}
-		public function rawunpad(src:BigInteger, n:uint, type:uint = 0):ByteArray {
-			return src.toByteArray();
 		}
 		
 		public function toString():String {
@@ -240,7 +203,7 @@ package com.hurlant.crypto.rsa
 			var qs:uint = B>>1;
 			var key:RSAKey = new RSAKey(null,0,null);
 			key.e = parseInt(E, 16);
-			var ee:BigInteger = new BigInteger(E,16, true);
+			var ee:BigInteger = new BigInteger(E,16);
 			for (;;) {
 				for (;;) {
 					key.p = bigRandom(B-qs, rng);
@@ -277,7 +240,7 @@ package com.hurlant.crypto.rsa
 			var x:ByteArray = new ByteArray;
 			rnd.nextBytes(x, (bits>>3));
 			x.position = 0;
-			var b:BigInteger = new BigInteger(x,0,true);
+			var b:BigInteger = new BigInteger(x);
 			b.primify(bits, 1);
 			return b;
 		}

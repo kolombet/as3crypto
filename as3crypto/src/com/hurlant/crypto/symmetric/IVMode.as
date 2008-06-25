@@ -35,8 +35,6 @@ package com.hurlant.crypto.symmetric
 			blockSize = key.getBlockSize();
 			if (padding == null) {
 				padding = new PKCS5(blockSize);
-			} else {
-				padding.setBlockSize(blockSize);
 			}
 			this.padding = padding;
 			

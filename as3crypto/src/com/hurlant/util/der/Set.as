@@ -1,16 +1,8 @@
-/**
- * Set
- * 
- * An ASN1 type for an Set, that extends a Sequence
- * Copyright (c) 2007 Henri Torgemane
- * 
- * See LICENSE.txt for full license information.
- */
 package com.hurlant.util.der
 {
 	public dynamic class Set extends Sequence implements IAsn1Type
 	{
-		public function Set(type:uint = 0x31, length:uint = 0x00) {
+		public function Set(type:uint, length:uint) {
 			super(type, length);
 		}
 
