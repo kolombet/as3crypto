@@ -14,11 +14,12 @@ package com.hurlant.crypto.symmetric
 	{
 		public function OFBMode(key:ISymmetricKey, padding:IPad=null)
 		{
-			super(key, null);
+			super(key, padding);
 		}
 		
 		public function encrypt(src:ByteArray):void
 		{
+			padding.pad(src);
 			var vector:ByteArray = getIV4e();
 			core(src, vector);
 		}
@@ -27,17 +28,16 @@ package com.hurlant.crypto.symmetric
 		{
 			var vector:ByteArray = getIV4d();
 			core(src, vector);
+			padding.unpad(src);
 		}
 		
 		private function core(src:ByteArray, iv:ByteArray):void { 
-			var l:uint = src.length;
 			var tmp:ByteArray = new ByteArray;
 			for (var i:uint=0;i<src.length;i+=blockSize) {
 				key.encrypt(iv);
 				tmp.position=0;
 				tmp.writeBytes(iv);
-				var chunk:uint = (i+blockSize<l)?blockSize:l-i;
-				for (var j:uint=0;j<chunk;j++) {
+				for (var j:uint=0;j<blockSize;j++) {
 					src[i+j] ^= iv[j];
 				}
 				iv.position=0;

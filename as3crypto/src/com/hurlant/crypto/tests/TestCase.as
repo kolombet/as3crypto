@@ -23,6 +23,7 @@ package com.hurlant.crypto.tests
 //				TestHarness.print("+ ",msg);
 				return;
 			}
+			harness.failTest(msg);
 			throw new Error("Test Failure:"+msg);
 		}
 		
@@ -31,9 +32,6 @@ package com.hurlant.crypto.tests
 			try {
 				f();
 			} catch (e:Error) {
-				trace("EXCEPTION THROWN: "+e);
-				trace(e.getStackTrace());
-				harness.failTest(e.toString());
 				return;
 			}
 			harness.passTest();

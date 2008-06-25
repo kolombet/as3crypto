@@ -9,7 +9,6 @@
 <sourceAttachmentPath/>
 </compiler>
 <applications>
-<application path="TLSUI.mxml"/>
 <application path="CryptoDemo.mxml"/>
 </applications>
 <modules/>

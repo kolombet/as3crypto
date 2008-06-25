@@ -11,15 +11,16 @@
  */
 package com.hurlant.crypto.prng
 {
-	import com.hurlant.crypto.symmetric.IStreamCipher;
+	import com.hurlant.crypto.symmetric.ICipher;
 	import com.hurlant.util.Memory;
 	
 	import flash.utils.ByteArray;
 
-	public class ARC4 implements IPRNG, IStreamCipher {
+	public class ARC4 implements IPRNG, ICipher {
 		private var i:int = 0;
 		private var j:int = 0;
 		private var S:ByteArray;
+		private var key:ByteArray;
 		private const psize:uint = 256;
 		public function ARC4(key:ByteArray = null){
 			S = new ByteArray;
@@ -31,6 +32,7 @@ package com.hurlant.crypto.prng
 			return psize;
 		}
 		public function init(key:ByteArray):void {
+			this.key = key; //keep a copy, as we need to reset our state for every encrypt/decrypt call.
 			var i:int;
 			var j:int;
 			var t:int;
@@ -62,6 +64,7 @@ package com.hurlant.crypto.prng
 		}
 		
 		public function encrypt(block:ByteArray):void {
+			init(key);
 			var i:uint = 0;
 			while (i<block.length) {
 				block[i++] ^= next();
@@ -72,13 +75,16 @@ package com.hurlant.crypto.prng
 		}
 		public function dispose():void {
 			var i:uint = 0;
-			if (S!=null) {
-				for (i=0;i<S.length;i++) {
-					S[i] = Math.random()*256;
-				}
-				S.length=0;
-				S = null;
+			for (i=0;i<S.length;i++) {
+				S[i] = Math.random()*256;
 			}
+			for (i=0;i<key.length;i++) {
+				key[i] = Math.random()*256;
+			}
+			S.length=0;
+			key.length=0;
+			S = null;
+			key = null;
 			this.i = 0;
 			this.j = 0;
 			Memory.gc();

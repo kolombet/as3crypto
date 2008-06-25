@@ -27,15 +27,6 @@ package com.hurlant.crypto.hash
 			this.bits = bits;
 		}
 		
-
-		public function getHashSize():uint {
-			if (bits!=0) {
-				return bits/8;
-			} else {
-				return hash.getHashSize();
-			}
-		}
-		
 		/**
 		 * Compute a HMAC using a key and some data.
 		 * It doesn't modify either, and returns a new ByteArray with the HMAC value.
@@ -69,10 +60,6 @@ package com.hurlant.crypto.hash
 				outerHash.length = bits/8;
 			}
 			return outerHash;
-		}
-		public function dispose():void {
-			hash = null;
-			bits = 0;
 		}
 		public function toString():String {
 			return "hmac-"+(bits>0?bits+"-":"")+hash.toString();
